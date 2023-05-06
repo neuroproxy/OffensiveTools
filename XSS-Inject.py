@@ -3,7 +3,7 @@ import requests
 # Libreria para imprimir datos de manera entendible
 from pprint import pprint
 # Libreria para extraer datos de una web de forma estructurada, BeatifulSoup representa el documento HTML o XML 
-from bs4 import BeatifulSoup as bs
+from bs4 import BeautifulSoup as bs
 # Libreria que sirve para concatenar cadenas y luego unirlas a una URL en componentes
 from urllib.parse import urljoin
 
@@ -20,7 +20,7 @@ def get_form_details(form):
     method =form.attrs.get("method", "get").lower()
     inputs = []
     # Bucle for que recorre las inputs_tags del formulario HTML y agregamos esta informacion al arreglo input[]
-    for input_tags in form.find_all("input"):
+    for input_tag in form.find_all("input"):
         input_type = input_tag.attrs.get("type", "text")
         input_name = input_tag.attrs.get("name")
         inputs.append({"type": input_type, "name": input_name})
@@ -31,8 +31,8 @@ def get_form_details(form):
     return details
 
 # Funcion a la que pasamos los parametros como el HTML, la URL y el valor que contendra los campos potenciales
-def submit_for(form_details, url, value):
-    target_url = urljoin(url, form_details["actions"])
+def submit_form(form_details, url, value):
+    target_url = urljoin(url, form_details["action"])
     inputs = form_details["inputs"]
     data = {}
     # Bucle que recorre el arreglo inputs y verifica que si los campos inyectables son de tipo text o search, seran iguales a value
@@ -57,7 +57,7 @@ def scan_xss(url):
     forms = get_all_forms(url)
     print(f"[+] Detected {len(forms)} form on {url}")
     js_Script = "<Script>alert('pwn')</scripT>"
-    is_vulnerable = false
+    is_vulnerable = False
     # Bucle for que recorre el forms aplicado a traves de la funcion get_form_details e inyecta el payload en todos los campos
     for form in forms:
         form_details = get_form_details(form)
